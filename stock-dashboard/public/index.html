@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Stock Broker Dashboard - Real-time stock tracking">
+  <title>StockPulse - Login</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+  <div class="login-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <main class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="url(#logo-gradient)"/>
+            <path d="M10 28L16 18L22 22L30 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="16" cy="18" r="2" fill="white"/>
+            <circle cx="22" cy="22" r="2" fill="white"/>
+            <circle cx="30" cy="12" r="2" fill="white"/>
+            <defs>
+              <linearGradient id="logo-gradient" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">StockPulse</span>
+        </div>
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Track your favorite stocks in real-time</p>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="you@example.com" 
+              required 
+              autocomplete="email"
+              class="form-input"
+            >
+          </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn btn-primary btn-login">
+          <span class="btn-text">Enter Dashboard</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <div class="stock-preview">
+          <span class="preview-label">Tracking</span>
+          <div class="preview-stocks">
+            <span class="stock-chip">GOOG</span>
+            <span class="stock-chip">TSLA</span>
+            <span class="stock-chip">AMZN</span>
+            <span class="stock-chip">META</span>
+            <span class="stock-chip">NVDA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="login-credit">Real-time data • Secure connection • Multiple sessions</p>
+  </main>
+
+  <script>
+    // Check if user is already logged in
+    const storedUser = localStorage.getItem('stockpulse_user');
+    if (storedUser) {
+      window.location.href = 'dashboard.html';
+    }
+
+    // Handle login form
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      
+      if (email) {
+        localStorage.setItem('stockpulse_user', email);
+        window.location.href = 'dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

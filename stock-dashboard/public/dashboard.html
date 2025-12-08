@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stock Broker Dashboard - Real-time stock tracking">
+    <title>StockPulse - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="dashboard-page">
+    <div class="dashboard-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="url(#logo-gradient-header)" />
+                    <path d="M10 28L16 18L22 22L30 12" stroke="white" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <circle cx="16" cy="18" r="2" fill="white" />
+                    <circle cx="22" cy="22" r="2" fill="white" />
+                    <circle cx="30" cy="12" r="2" fill="white" />
+                    <defs>
+                        <linearGradient id="logo-gradient-header" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#6366f1" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="logo-text">StockPulse</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <span class="user-email" id="userEmail">user@example.com</span>
+            </div>
+            <button class="btn btn-ghost btn-logout" id="logoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <!-- Subscriptions Panel -->
+        <aside class="subscriptions-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Stock Subscriptions</h2>
+                <p class="panel-subtitle">Select stocks to track</p>
+            </div>
+            <div class="subscription-list" id="subscriptionList">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="panel-footer">
+                <div class="active-count">
+                    <span class="count-number" id="activeCount">0</span>
+                    <span class="count-label">Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Live Prices Panel -->
+        <section class="prices-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Live Prices</h2>
+                <div class="last-update">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span id="lastUpdateTime">--:--:--</span>
+                </div>
+            </div>
+
+            <div class="prices-table-wrapper">
+                <table class="prices-table" id="pricesTable">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>%</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pricesTableBody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                    <h3>No Stocks Selected</h3>
+                    <p>Subscribe to stocks from the left panel to see live prices</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+
+</html>
