@@ -150,19 +150,17 @@ stock-dashboard/
 - Updates are personalized and independent per user
 
 ### Session Persistence
-- User email stored in `localStorage`
-- On page load, checks for existing session
-- Auto-redirects to dashboard if logged in
-- Subscriptions maintained on server side
+Authentication state is managed by Firebase Authentication.
+User sessions persist across page reloads using Firebase's secure token-based session handling.
+On page load, the application automatically restores the authenticated session and redirects the user to the dashboard.
+User subscriptions and portfolio data are persisted in Firestore and restored on login.
 
-## Configuration
 
-Default port: `3000`
+### Configuration
+The application is deployed as a hosted web service.
+In production environments, the server binds to the port provided by the hosting platform via environment variables.
+No manual port configuration is required for deployed usage.
 
-To change port, set environment variable:
-```bash
-PORT=8080 npm start
-```
 
 ## Supported Stocks
 
@@ -179,29 +177,10 @@ PORT=8080 npm start
 - Safari
 - Edge
 
-## Performance
+### Performance
 
-- Updates: 1 second intervals
-- Concurrent users: Tested up to 100
-- Memory: ~50MB base + ~1KB per user
-- CPU: Minimal (<5% on modern hardware)
+Stock prices are updated at 1-second intervals using real-time database listeners.
+The application is designed to support multiple concurrent users with minimal client-side overhead.
+Performance testing was conducted in a browser-based environment with multiple simultaneous sessions.
 
-## Graceful Shutdown
 
-Server handles `SIGTERM` and `SIGINT` signals:
-- Stops price update intervals
-- Closes server gracefully
-- Allows active connections to complete
-
-## Development
-
-The application uses in-memory storage. For production:
-- Add database for user persistence
-- Implement proper authentication
-- Add rate limiting
-- Use Redis for session management
-- Add logging and monitoring
-
-## License
-
-MIT
