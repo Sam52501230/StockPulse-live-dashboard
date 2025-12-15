@@ -23,14 +23,26 @@ function registerUser(email, socketId) {
         ? users.get(email).subscriptions
         : new Set();
 
+    const existingHoldings = users.has(email)
+        ? users.get(email).holdings
+        : {};
+
+    const existingInitialPrices = users.has(email)
+        ? users.get(email).initialPrices
+        : {};
+
     users.set(email, {
         socketId,
-        subscriptions: existingSubscriptions
+        subscriptions: existingSubscriptions,
+        holdings: existingHoldings,
+        initialPrices: existingInitialPrices
     });
 
     return {
         email,
-        subscriptions: Array.from(existingSubscriptions)
+        subscriptions: Array.from(existingSubscriptions),
+        holdings: existingHoldings,
+        initialPrices: existingInitialPrices
     };
 }
 
@@ -102,6 +114,37 @@ function isSubscribed(email, symbol) {
     return users.get(email).subscriptions.has(symbol);
 }
 
+// Update user holding for a stock
+function updateHolding(email, symbol, units) {
+    if (!users.has(email)) return false;
+    const user = users.get(email);
+    user.holdings[symbol] = units;
+    return true;
+}
+
+// Get user holding for a stock
+function getHolding(email, symbol) {
+    if (!users.has(email)) return 0;
+    return users.get(email).holdings[symbol] || 0;
+}
+
+// Set initial price for a stock (for P/L calculation)
+function setInitialPrice(email, symbol, price) {
+    if (!users.has(email)) return false;
+    const user = users.get(email);
+    // Only set if not already set, to preserve "first seen" price
+    if (!user.initialPrices[symbol]) {
+        user.initialPrices[symbol] = price;
+    }
+    return true;
+}
+
+// Get initial price for a stock
+function getInitialPrice(email, symbol) {
+    if (!users.has(email)) return null;
+    return users.get(email).initialPrices[symbol] || null;
+}
+
 module.exports = {
     registerUser,
     removeUser,
@@ -111,5 +154,9 @@ module.exports = {
     getSubscriptions,
     getActiveUsers,
     getUserBySocketId,
-    isSubscribed
+    isSubscribed,
+    updateHolding,
+    getHolding,
+    setInitialPrice,
+    getInitialPrice
 };

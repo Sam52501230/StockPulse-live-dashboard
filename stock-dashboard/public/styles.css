@@ -40,7 +40,9 @@
   --transition-base: 250ms ease;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -60,7 +62,8 @@ body {
   overflow-x: hidden;
 }
 
-.login-background, .dashboard-background {
+.login-background,
+.dashboard-background {
   position: fixed;
   top: 0;
   left: 0;
@@ -106,10 +109,23 @@ body {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -30px) scale(1.05); }
-  50% { transform: translate(-20px, 20px) scale(0.95); }
-  75% { transform: translate(-30px, -20px) scale(1.02); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(30px, -30px) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+
+  75% {
+    transform: translate(-30px, -20px) scale(1.02);
+  }
 }
 
 .logo {
@@ -354,7 +370,8 @@ body {
   z-index: 100;
 }
 
-.header-left, .header-right {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
@@ -387,8 +404,15 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-text {
@@ -430,7 +454,8 @@ body {
   flex: 1;
 }
 
-.subscriptions-panel, .prices-panel {
+.subscriptions-panel,
+.prices-panel {
   background: var(--color-bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
@@ -533,7 +558,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-.subscription-checkbox input:checked + .checkmark {
+.subscription-checkbox input:checked+.checkmark {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
@@ -551,7 +576,7 @@ body {
   transform: rotate(45deg);
 }
 
-.subscription-checkbox input:checked + .checkmark::after {
+.subscription-checkbox input:checked+.checkmark::after {
   display: block;
 }
 
@@ -603,7 +628,195 @@ body {
   border-collapse: collapse;
 }
 
-.prices-table th, .prices-table td {
+.prices-grid-wrapper {
+  padding: var(--spacing-lg);
+  min-height: 300px;
+}
+
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.stock-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.stock-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-hover);
+}
+
+.stock-card.flash-up {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.stock-card.flash-down {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.stock-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.stock-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.stock-price-large {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.price-change-wrapper {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.sparkline-container {
+  height: 60px;
+  width: 100%;
+  position: relative;
+}
+
+.sparkline-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sparkline-path {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: d 0.3s ease;
+}
+
+.sparkline-path.positive {
+  stroke: var(--color-success);
+}
+
+.sparkline-path.negative {
+  stroke: var(--color-danger);
+}
+
+.holdings-section {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-top: auto;
+}
+
+.holdings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.holdings-row:last-child {
+  margin-bottom: 0;
+}
+
+.holdings-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.holdings-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.holdings-input {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  width: 80px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-align: right;
+  transition: border-color 0.2s;
+}
+
+.holdings-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.pl-value {
+  font-weight: 600;
+}
+
+.pl-value.positive {
+  color: var(--color-success);
+}
+
+.pl-value.negative {
+  color: var(--color-danger);
+}
+
+/* Portfolio Summary Header Styles */
+.portfolio-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: var(--spacing-xl);
+}
+
+.portfolio-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.portfolio-value {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.prices-table th,
+.prices-table td {
   padding: var(--spacing-md);
   text-align: left;
 }
@@ -617,18 +830,7 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-.prices-table tbody tr {
-  border-bottom: 1px solid var(--color-border);
-  transition: background var(--transition-fast);
-}
 
-.prices-table tbody tr:hover {
-  background: var(--color-bg-hover);
-}
-
-.prices-table tbody tr:last-child {
-  border-bottom: none;
-}
 
 .stock-symbol {
   font-family: var(--font-mono);
@@ -668,13 +870,27 @@ body {
 }
 
 @keyframes flashGreen {
-  0%, 100% { background: transparent; }
-  50% { background: var(--color-success-bg); }
+
+  0%,
+  100% {
+    background: transparent;
+  }
+
+  50% {
+    background: var(--color-success-bg);
+  }
 }
 
 @keyframes flashRed {
-  0%, 100% { background: transparent; }
-  50% { background: var(--color-danger-bg); }
+
+  0%,
+  100% {
+    background: transparent;
+  }
+
+  50% {
+    background: var(--color-danger-bg);
+  }
 }
 
 .stock-change {
@@ -766,16 +982,20 @@ body {
   .dashboard-main {
     grid-template-columns: 1fr;
   }
+
   .subscription-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
+
   .header-right {
     gap: var(--spacing-sm);
   }
+
   .user-email {
     display: none;
   }
+
   .btn-logout span {
     display: none;
   }
@@ -785,13 +1005,17 @@ body {
   .dashboard-header {
     padding: var(--spacing-sm) var(--spacing-md);
   }
+
   .dashboard-main {
     padding: var(--spacing-md);
   }
+
   .logo-text {
     display: none;
   }
-  .prices-table th:nth-child(5), .prices-table td:nth-child(5) {
+
+  .prices-table th:nth-child(5),
+  .prices-table td:nth-child(5) {
     display: none;
   }
 }

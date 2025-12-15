@@ -22,6 +22,8 @@ function initialize(socketIo) {
             socket.emit('login_success', {
                 email: user.email,
                 subscriptions: user.subscriptions,
+                holdings: user.holdings,
+                initialPrices: user.initialPrices,
                 availableStocks: stocks.getSymbols()
             });
 
@@ -30,6 +32,10 @@ function initialize(socketIo) {
                 const initialPrices = {};
                 user.subscriptions.forEach(symbol => {
                     initialPrices[symbol] = stocks.getPrice(symbol);
+                    // Ensure initial price is set if missing
+                    if (!user.initialPrices[symbol]) {
+                        users.setInitialPrice(user.email, symbol, stocks.getPrice(symbol).price);
+                    }
                 });
                 socket.emit('price_update', initialPrices);
             }
@@ -40,12 +46,18 @@ function initialize(socketIo) {
             const user = users.getUserBySocketId(socket.id);
             if (user) {
                 users.subscribe(user.email, symbol);
+
+                // Set initial price if first time subscribing
+                const priceData = stocks.getPrice(symbol);
+                if (priceData) {
+                    users.setInitialPrice(user.email, symbol, priceData.price);
+                }
+
                 console.log(`[Socket] ${user.email} subscribed to ${symbol}`);
 
                 // Send immediate price update for the new subscription
-                const price = stocks.getPrice(symbol);
-                if (price) {
-                    socket.emit('price_update', { [symbol]: price });
+                if (priceData) {
+                    socket.emit('price_update', { [symbol]: priceData });
                 }
             }
         });
@@ -56,6 +68,17 @@ function initialize(socketIo) {
             if (user) {
                 users.unsubscribe(user.email, symbol);
                 console.log(`[Socket] ${user.email} unsubscribed from ${symbol}`);
+            }
+        });
+
+        // Handle holding updates
+        socket.on('update_holding', ({ symbol, units }) => {
+            const user = users.getUserBySocketId(socket.id);
+            if (user) {
+                console.log(`[Holding Update] User: ${user.email} | Stock: ${symbol} | New Units: ${units}`);
+                users.updateHolding(user.email, symbol, parseFloat(units));
+            } else {
+                console.log(`[Holding Update Failed] No user found for socket: ${socket.id}`);
             }
         });
 
@@ -70,7 +93,10 @@ function initialize(socketIo) {
                 const prices = {};
                 symbols.forEach(symbol => {
                     const price = stocks.getPrice(symbol);
-                    if (price) prices[symbol] = price;
+                    if (price) {
+                        prices[symbol] = price;
+                        users.setInitialPrice(user.email, symbol, price.price);
+                    }
                 });
                 if (Object.keys(prices).length > 0) {
                     socket.emit('price_update', prices);

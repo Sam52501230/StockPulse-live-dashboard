@@ -41,23 +41,26 @@
                 <span class="logo-text">StockPulse</span>
             </div>
         </div>
-        <div class="header-right">
-            <div class="connection-status" id="connectionStatus">
-                <span class="status-dot"></span>
-                <span class="status-text">Connecting...</span>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <span class="user-email" id="userEmail">user@example.com</span>
-            </div>
-            <button class="btn btn-ghost btn-logout" id="logoutBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                <span>Logout</span>
-            </button>
+        <div class="portfolio-summary">
+            <span class="portfolio-label">Portfolio Value</span>
+            <span class="portfolio-value" id="totalPortfolioValue">$0.00</span>
+        </div>
+        <div class="connection-status" id="connectionStatus">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-email" id="userEmail">user@example.com</span>
+        </div>
+        <button class="btn btn-ghost btn-logout" id="logoutBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Logout</span>
+        </button>
         </div>
     </header>
 
@@ -92,21 +95,10 @@
                 </div>
             </div>
 
-            <div class="prices-table-wrapper">
-                <table class="prices-table" id="pricesTable">
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>Price</th>
-                            <th>Change</th>
-                            <th>%</th>
-                            <th>Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pricesTableBody">
-                        <!-- Dynamically populated -->
-                    </tbody>
-                </table>
+            <div class="prices-grid-wrapper">
+                <div class="stock-grid" id="stockGrid">
+                    <!-- Dynamically populated cards -->
+                </div>
 
                 <div class="empty-state" id="emptyState">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

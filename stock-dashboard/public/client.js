@@ -12,6 +12,9 @@ let socket = null;
 let currentUser = null;
 let subscriptions = new Set();
 let priceData = {};
+let holdings = {};
+let initialPrices = {};
+let priceHistory = {}; // Store history for sparklines: { symbol: [price1, price2, ...] }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -58,6 +61,8 @@ function initializeSocket() {
     socket.on('login_success', (data) => {
         console.log('Login successful', data);
         subscriptions = new Set(data.subscriptions);
+        holdings = data.holdings || {};
+        initialPrices = data.initialPrices || {};
         renderSubscriptionList(data.availableStocks);
         updateActiveCount();
     });
@@ -122,7 +127,7 @@ function handleSubscriptionChange(symbol, isChecked) {
     } else {
         subscriptions.delete(symbol);
         socket.emit('unsubscribe', symbol);
-        removePriceRow(symbol);
+        removeStockCard(symbol);
     }
 
     updateActiveCount();
@@ -161,85 +166,225 @@ function handlePriceUpdate(prices) {
         const oldPrice = priceData[symbol]?.price;
         priceData[symbol] = data;
 
-        updatePriceRow(symbol, data, oldPrice);
+        // Capture initial price if missing (for new subscriptions during session)
+        if (!initialPrices[symbol]) {
+            initialPrices[symbol] = data.price;
+        }
+
+        // Update history for sparklines
+        if (!priceHistory[symbol]) priceHistory[symbol] = [];
+        priceHistory[symbol].push(data.price);
+        if (priceHistory[symbol].length > 20) priceHistory[symbol].shift();
+
+        updateStockCard(symbol, data, oldPrice);
     });
 
+    updatePortfolioSummary();
     updateLastUpdateTime();
     updateEmptyState();
 }
 
-// Update or create price table row
-function updatePriceRow(symbol, data, oldPrice) {
-    const tbody = document.getElementById('pricesTableBody');
-    let row = tbody.querySelector(`tr[data-symbol="${symbol}"]`);
+// Update Total Portfolio Value
+function updatePortfolioSummary() {
+    let totalValue = 0;
 
-    if (!row) {
-        row = createPriceRow(symbol);
-        tbody.appendChild(row);
+    subscriptions.forEach(symbol => {
+        const price = priceData[symbol]?.price || 0;
+        const units = holdings[symbol] || 0;
+        totalValue += price * units;
+    });
+
+    const totalEl = document.getElementById('totalPortfolioValue');
+    if (totalEl) {
+        const oldValue = parseFloat(totalEl.textContent.replace(/[$,]/g, '')) || 0;
+        totalEl.textContent = `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        // Simple color flash for portfolio
+        if (totalValue > oldValue) totalEl.style.color = 'var(--color-success)';
+        else if (totalValue < oldValue) totalEl.style.color = 'var(--color-danger)';
+
+        setTimeout(() => totalEl.style.color = '', 300);
+    }
+}
+
+// Handle holding input change
+function handleHoldingChange(symbol, value) {
+    const units = parseFloat(value) || 0;
+    holdings[symbol] = units;
+
+    // Emit to server
+    if (socket) {
+        socket.emit('update_holding', { symbol, units });
     }
 
-    const priceCell = row.querySelector('.stock-price');
-    const changeCell = row.querySelector('.stock-change');
-    const percentCell = row.querySelector('.stock-change-percent');
-    const timeCell = row.querySelector('.stock-time');
+    // Force update card to recalculate values immediately
+    if (priceData[symbol]) {
+        updateStockCard(symbol, priceData[symbol]);
+    }
+    updatePortfolioSummary();
+}
 
-    // Update price with flash animation
+// Update or create stock card
+function updateStockCard(symbol, data, oldPrice) {
+    const grid = document.getElementById('stockGrid');
+    let card = grid.querySelector(`.stock-card[data-symbol="${symbol}"]`);
+
+    if (!card) {
+        card = createStockCard(symbol);
+        grid.appendChild(card);
+    }
+
+    // Elements
+    const priceEl = card.querySelector('.stock-price-large');
+    const changeEl = card.querySelector('.stock-change');
+    const changePercentEl = card.querySelector('.stock-change-percent');
+    const sparklinePath = card.querySelector('.sparkline-path');
+
+    // Position elements
+    const unitsInput = card.querySelector('.holdings-input');
+    const positionValueEl = card.querySelector('.position-value');
+    const plValueEl = card.querySelector('.pl-value');
+
+    // Flash Highlight Animation
     if (oldPrice !== undefined && oldPrice !== data.price) {
-        priceCell.classList.remove('flash-up', 'flash-down');
-        void priceCell.offsetWidth; // Trigger reflow
+        card.classList.remove('flash-up', 'flash-down');
+        void card.offsetWidth; // Trigger reflow
         if (data.price > oldPrice) {
-            priceCell.classList.add('flash-up');
+            card.classList.add('flash-up');
         } else if (data.price < oldPrice) {
-            priceCell.classList.add('flash-down');
+            card.classList.add('flash-down');
         }
     }
 
-    priceCell.textContent = `$${data.price.toFixed(2)}`;
+    // Update Price Text
+    priceEl.textContent = `$${data.price.toFixed(2)}`;
 
-    // Update change
+    // Update Change Text
     const changeClass = data.change > 0 ? 'positive' : data.change < 0 ? 'negative' : 'neutral';
     const changeSymbol = data.change > 0 ? '+' : '';
 
-    changeCell.className = `stock-change ${changeClass}`;
-    changeCell.textContent = `${changeSymbol}${data.change.toFixed(2)}`;
+    changeEl.className = `stock-change ${changeClass}`;
+    changeEl.textContent = `${changeSymbol}${data.change.toFixed(2)}`;
 
-    percentCell.className = `stock-change-percent ${changeClass}`;
-    percentCell.textContent = `${changeSymbol}${data.changePercent.toFixed(2)}%`;
+    changePercentEl.className = `stock-change-percent ${changeClass}`;
+    changePercentEl.textContent = `${changeSymbol}${data.changePercent.toFixed(2)}%`;
 
-    // Update time
-    const time = new Date(data.lastUpdate);
-    timeCell.textContent = time.toLocaleTimeString();
+    // Update Sparkline
+    if (priceHistory[symbol]) {
+        const pathD = generateSparklinePath(priceHistory[symbol]);
+        sparklinePath.setAttribute('d', pathD);
+        sparklinePath.setAttribute('class', `sparkline-path ${changeClass}`);
+    }
+
+    // Update Holdings & P/L
+    const units = parseFloat(unitsInput.value) || 0;
+    holdings[symbol] = units; // Sync state for portfolio calculation
+
+    const positionValue = units * data.price;
+    positionValueEl.textContent = `$${positionValue.toFixed(2)}`;
+
+    // P/L Calculation
+    const initialPrice = initialPrices[symbol];
+    if (initialPrice && initialPrice > 0) {
+        const plPercent = ((data.price - initialPrice) / initialPrice) * 100;
+        const plClass = plPercent > 0 ? 'positive' : plPercent < 0 ? 'negative' : 'neutral';
+        const plSymbol = plPercent > 0 ? '+' : '';
+        plValueEl.textContent = `${plSymbol}${plPercent.toFixed(2)}%`;
+        plValueEl.className = `pl-value ${plClass}`;
+    } else {
+        plValueEl.textContent = '0.00%';
+        plValueEl.className = 'pl-value neutral';
+    }
 }
 
-// Create new price table row
-function createPriceRow(symbol) {
-    const row = document.createElement('tr');
-    row.setAttribute('data-symbol', symbol);
+// Create new stock card
+function createStockCard(symbol) {
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    card.setAttribute('data-symbol', symbol);
 
-    row.innerHTML = `
-    <td>
-      <div class="stock-symbol">
-        <div class="symbol-icon">${symbol.substring(0, 2)}</div>
-        <span>${symbol}</span>
-      </div>
-    </td>
-    <td class="stock-price">--</td>
-    <td class="stock-change neutral">--</td>
-    <td class="stock-change-percent neutral">--</td>
-    <td class="stock-time">--</td>
-  `;
+    // Default to 10 units if not set
+    const initialHolding = holdings[symbol] !== undefined ? holdings[symbol] : 10;
 
-    return row;
+    card.innerHTML = `
+        <div class="card-header">
+            <div class="stock-info">
+                <h3>${symbol}</h3>
+                <div class="stock-name">${STOCK_NAMES[symbol] || symbol}</div>
+            </div>
+            <div class="stock-icon">${symbol.substring(0, 2)}</div>
+        </div>
+        
+        <div class="price-section">
+            <div class="stock-price-large">--</div>
+            <div class="price-change-wrapper">
+                <div class="stock-change neutral">--</div>
+                <div class="stock-change-percent neutral">--</div>
+            </div>
+        </div>
+
+        <div class="sparkline-container">
+            <svg class="sparkline-svg" preserveAspectRatio="none">
+                <path class="sparkline-path neutral" d="" />
+            </svg>
+        </div>
+
+        <div class="holdings-section">
+            <div class="holdings-row">
+                <span class="holdings-label">Units Owned</span>
+                <input type="number" class="holdings-input" value="${initialHolding}" min="0" step="1">
+            </div>
+            <div class="holdings-row">
+                <span class="holdings-label">Position Value</span>
+                <span class="holdings-value position-value">$0.00</span>
+            </div>
+            <div class="holdings-row">
+                <span class="holdings-label">Total P/L</span>
+                <span class="holdings-value pl-value">0.00%</span>
+            </div>
+        </div>
+    `;
+
+    // Add event listener for holdings input
+    const input = card.querySelector('.holdings-input');
+    input.addEventListener('input', (e) => {
+        handleHoldingChange(symbol, e.target.value);
+    });
+
+    return card;
 }
 
-// Remove price row
-function removePriceRow(symbol) {
-    const tbody = document.getElementById('pricesTableBody');
-    const row = tbody.querySelector(`tr[data-symbol="${symbol}"]`);
-    if (row) {
-        row.remove();
+// Generate SVG Path for Sparkline
+function generateSparklinePath(prices) {
+    if (!prices || prices.length < 2) return '';
+
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 1; // Avoid division by zero
+    const height = 60;
+    const width = 100; // virtual width units
+    const step = width / (prices.length - 1);
+
+    // Map prices to points (invert Y because SVG coords go down)
+    const points = prices.map((price, i) => {
+        const x = i * step;
+        const normalizedY = (price - min) / range;
+        const y = height - (normalizedY * height);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+
+    return `M ${points.join(' L ')}`;
+}
+
+// Remove stock card
+function removeStockCard(symbol) {
+    const grid = document.getElementById('stockGrid');
+    const card = grid.querySelector(`.stock-card[data-symbol="${symbol}"]`);
+    if (card) {
+        card.remove();
     }
     delete priceData[symbol];
+    delete priceHistory[symbol];
 }
 
 // Update last update time
@@ -253,15 +398,15 @@ function updateLastUpdateTime() {
 
 // Update empty state visibility
 function updateEmptyState() {
-    const table = document.getElementById('pricesTable');
+    const grid = document.getElementById('stockGrid');
     const emptyState = document.getElementById('emptyState');
 
     if (subscriptions.size === 0) {
-        table.classList.add('hidden');
-        emptyState.classList.add('visible');
+        if (grid) grid.style.display = 'none';
+        if (emptyState) emptyState.classList.add('visible');
     } else {
-        table.classList.remove('hidden');
-        emptyState.classList.remove('visible');
+        if (grid) grid.style.display = 'grid';
+        if (emptyState) emptyState.classList.remove('visible');
     }
 }
 
