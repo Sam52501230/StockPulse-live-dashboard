@@ -1,186 +1,94 @@
-# StockPulse - Real-Time Stock Broker Dashboard
+# StockPulse - Real-Time Stock Trading Dashboard
 
-A production-ready real-time stock tracking dashboard built with Node.js, Express, Socket.io, and vanilla JavaScript.
+**Live Demo:**(https://stockpulse-live-dashboard-3.onrender.com/)
 
-## Features
+A production-ready, real-time stock tracking dashboard engineered for high-frequency updates and concurrent user sessions. Built with a performance-first approach using Node.js and WebSockets.
 
-- **Email-Only Login** - Simple authentication using email only
-- **Real-Time Updates** - Live stock prices updated every second via WebSockets
-- **Selective Subscriptions** - Subscribe to specific stocks (GOOG, TSLA, AMZN, META, NVDA)
-- **Multi-User Support** - Multiple users can track different stocks independently
-- **Persistent Sessions** - User sessions persist across page refreshes
-- **Modern UI** - Glassmorphism design with smooth animations
 
-## Tech Stack
+## 🚀 Key Features
 
-**Backend:**
-- Node.js
-- Express.js
-- Socket.io
+- **Real-Time Data Streaming**: Live stock prices updated every second via persistent WebSocket connections (Socket.io).
+- **Concurrent User Sessions**: Supports multiple simultaneous users with independent, asynchronous data streams.
+- **Dynamic Subscriptions**: Users can subscribe/unsubscribe to specific stocks (GOOG, TSLA, AMZN, etc.) in real-time without page reloads.
+- **Glassmorphism UI**: A modern, responsive interface built with vanilla CSS3 for maximum performance and browser compatibility.
+- **Session Persistence**: Smart state management ensures user settings and subscriptions are saved across sessions.
 
-**Frontend:**
-- HTML5
-- CSS3 (Vanilla)
-- JavaScript (ES6+)
-- Socket.io Client
+## 🛠️ Technology Stack
 
-## Installation
+Designed with a lightweight, dependency-free frontend and a robust event-driven backend.
 
-1. **Install dependencies:**
-```bash
-npm install
+### Frontend
+- **Vanilla JavaScript (ES6+)**: Core logic, DOM manipulation, and state management.
+- **Vanilla CSS3**: Custom responsive design without heavy frameworks.
+- **HTML5**: Semantic markup.
+- 
+### Backend
+- **Node.js**: Runtime environment.
+- **Express.js**: REST API for initial static serving and health checks.
+- **Socket.io**: Real-time bi-directional event-based communication.
+
+
+
+## 🏗️ Architecture & System Design
+
+The application follows a **Publisher-Subscriber** pattern to handle real-time data efficiently.
+
+```
+[Stock Price Generator] ---> [Event Loop] ---> [Socket.io Broadcaster]
+                                                      |
+                                      +---------------+---------------+
+                                      |                               |
+                                [Client A]                       [Client B]
+                           (Sub: GOOG, TSLA)                 (Sub: NVDA, AMZN)
 ```
 
-## Running the Application
+### Core Components
 
-**Start the server:**
-```bash
-npm start
-```
+1.  **Price Generator (`server/stocks.js`)**
+    - Simulates market volatility using localized randomization algorithms.
+    - Generates atomic price updates every 1000ms.
 
-The server will start at `http://localhost:3000`
+2.  **User Manager (`server/users.js`)**
+    - In-memory data structure mapping `SocketID` ↔ `UserSession`.
+    - Handles subscription sets (`Set<string>`) for O(1) lookup performance.
 
-## Testing Multi-User Functionality
+3.  **Socket Handler (`server/socket.js`)**
+    - Manages connection lifecycle (Connect, Disconnect, Reconnect).
+    - Filters global price events to deliver only relevant data to each connected client.
 
-The following tests were performed on the **deployed application** to verify support for multiple concurrent users and asynchronous real-time updates.
+## 📂 Project Structure
 
-### Test Setup
-
-Two independent user sessions were opened using different browser contexts (normal window and incognito / different browser), both accessing the same deployed application URL:
-
-
-### Test Steps
-
-**User Session 1:**
-1. Open the deployed application in a browser window.
-2. Log in using:
-   - Email: `user1@example.com`
-3. Subscribe to the following stocks:
-   - GOOG
-   - TSLA
-
-**User Session 2:**
-1. Open the deployed application in a separate browser session.
-2. Log in using:
-   - Email: `user2@example.com`
-3. Subscribe to the following stocks:
-   - AMZN
-   - META
-   - NVDA
-
-### Verification
-
-- User 1’s dashboard displays only GOOG and TSLA with live price updates.
-- User 2’s dashboard displays only AMZN, META, and NVDA with live price updates.
-- Both dashboards update automatically in real time without requiring a page refresh.
-- Stock prices update asynchronously while both sessions remain open, demonstrating real-time data synchronization across multiple clients.
-
-### Subscription Change Test
-
-1. In User 1’s session, unsubscribe from GOOG.
-2. Verify that GOOG is immediately removed and stops updating for User 1.
-3. Verify that User 2’s dashboard remains unaffected.
-4. Re-subscribe to GOOG in User 1’s session and confirm that live updates resume instantly.
-
-### Reconnection Test
-
-1. Refresh the browser in User 1’s session.
-2. Verify that the user remains authenticated.
-3. Confirm that previously selected stock subscriptions are restored.
-4. Verify that real-time price updates continue without interruption.
-
-
-
-## Project Structure
+Verified, production-ready directory structure:
 
 ```
 stock-dashboard/
 ├── server/
-│   ├── index.js          # Main server entry point
-│   ├── socket.js         # Socket.io event handlers
-│   ├── stocks.js         # Stock price generator
-│   └── users.js          # User subscription management
+│   ├── index.js          # Application entry point & HTTP server
+│   ├── socket.js         # WebSocket event controller
+│   ├── stocks.js         # Data generation service
+│   └── users.js          # Session state management
 ├── public/
-│   ├── index.html        # Login page
-│   ├── dashboard.html    # Main dashboard
-│   ├── styles.css        # Complete styling
-│   └── client.js         # Client-side logic
-├── package.json
-└── README.md
+│   ├── client.js         # Frontend controller & socket listener
+│   ├── styles.css        # Custom CSS design system
+│   └── dashboard.html    # Main application view
+└── render.yaml           # Infrastructure-as-Code for deployment
 ```
 
-## API Endpoints
+## 📡 API Overview
 
-### HTTP Endpoints
+### Real-Time Events (WebSocket)
 
-- `GET /` - Serves login page
-- `GET /dashboard.html` - Serves dashboard page
-- `GET /api/stocks` - Returns available stocks and current prices
-- `GET /api/health` - Health check endpoint
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `login` | Client → Server | Authenticates user session. |
+| `subscribe` | Client → Server | Adds stock to data stream. |
+| `price_update` | Server → Client | Pushes new price data. |
 
-### Socket.io Events
+## 🔗 Live Deployment
 
-**Client → Server:**
-- `login` - User login with email
-- `subscribe` - Subscribe to a stock symbol
-- `unsubscribe` - Unsubscribe from a stock symbol
-- `update_subscriptions` - Bulk update subscriptions
+This project is deployed on **Render** to ensure high availability and persistent WebSocket connections.
 
-**Server → Client:**
-- `login_success` - Login confirmation with user data
-- `price_update` - Real-time price updates (personalized per user)
+**View Live App:** (https://stockpulse-live-dashboard-3.onrender.com/)
 
-## How It Works
-
-### Price Generation
-- Each stock starts with a realistic base price
-- Prices update every 1 second with random delta: `price += (Math.random() - 0.5) * 2`
-- Changes are calculated as absolute and percentage values
-
-### User Management
-- Users stored in-memory with email as key
-- Each user has a socket ID and subscription set
-- Subscriptions persist when user reconnects
-- Socket ID updates on reconnection
-
-### Real-Time Updates
-- Server generates new prices every second
-- For each active user, server filters prices by their subscriptions
-- Only subscribed stock prices are sent to each user
-- Updates are personalized and independent per user
-
-### Session Persistence
-Authentication state is managed by Firebase Authentication.
-User sessions persist across page reloads using Firebase's secure token-based session handling.
-On page load, the application automatically restores the authenticated session and redirects the user to the dashboard.
-User subscriptions and portfolio data are persisted in Firestore and restored on login.
-
-
-### Configuration
-The application is deployed as a hosted web service.
-In production environments, the server binds to the port provided by the hosting platform via environment variables.
-No manual port configuration is required for deployed usage.
-
-
-## Supported Stocks
-
-- **GOOG** - Alphabet Inc.
-- **TSLA** - Tesla Inc.
-- **AMZN** - Amazon.com Inc.
-- **META** - Meta Platforms Inc.
-- **NVDA** - NVIDIA Corporation
-
-## Browser Compatibility
-
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-
-### Performance
-
-Stock prices are updated at 1-second intervals using real-time database listeners.
-The application is designed to support multiple concurrent users with minimal client-side overhead.
-Performance testing was conducted in a browser-based environment with multiple simultaneous sessions.
-
-
+---
+*Developed by [Samudyata Madhavaranga Minasandra]*
