@@ -42,38 +42,54 @@ The server will start at `http://localhost:3000`
 
 ## Testing Multi-User Functionality
 
-To test that multiple users receive independent, asynchronous updates:
+The following tests were performed on the **deployed application** to verify support for multiple concurrent users and asynchronous real-time updates.
 
-### Test Steps:
+### Test Setup
 
-1. **Open Browser 1:**
-   - Navigate to `http://localhost:3000`
-   - Login with email: `user1@example.com`
-   - Subscribe to: GOOG, TSLA
+Two independent user sessions were opened using different browser contexts (normal window and incognito / different browser), both accessing the same deployed application URL:
 
-2. **Open Browser 2 (Incognito/Different Browser):**
-   - Navigate to `http://localhost:3000`
-   - Login with email: `user2@example.com`
-   - Subscribe to: AMZN, META, NVDA
 
-3. **Verify:**
-   - User 1 sees only GOOG and TSLA prices updating
-   - User 2 sees only AMZN, META, and NVDA prices updating
-   - Both dashboards update independently every second
-   - Prices change asynchronously (different random deltas)
+### Test Steps
 
-4. **Test Subscription Changes:**
-   - In Browser 1, uncheck GOOG
-   - Verify GOOG stops updating for User 1
-   - Verify User 2 is unaffected
-   - Check GOOG again in Browser 1
-   - Verify updates resume immediately
+**User Session 1:**
+1. Open the deployed application in a browser window.
+2. Log in using:
+   - Email: `user1@example.com`
+3. Subscribe to the following stocks:
+   - GOOG
+   - TSLA
 
-5. **Test Reconnection:**
-   - Refresh Browser 1
-   - Verify user stays logged in
-   - Verify subscriptions are maintained
-   - Verify price updates continue
+**User Session 2:**
+1. Open the deployed application in a separate browser session.
+2. Log in using:
+   - Email: `user2@example.com`
+3. Subscribe to the following stocks:
+   - AMZN
+   - META
+   - NVDA
+
+### Verification
+
+- User 1’s dashboard displays only GOOG and TSLA with live price updates.
+- User 2’s dashboard displays only AMZN, META, and NVDA with live price updates.
+- Both dashboards update automatically in real time without requiring a page refresh.
+- Stock prices update asynchronously while both sessions remain open, demonstrating real-time data synchronization across multiple clients.
+
+### Subscription Change Test
+
+1. In User 1’s session, unsubscribe from GOOG.
+2. Verify that GOOG is immediately removed and stops updating for User 1.
+3. Verify that User 2’s dashboard remains unaffected.
+4. Re-subscribe to GOOG in User 1’s session and confirm that live updates resume instantly.
+
+### Reconnection Test
+
+1. Refresh the browser in User 1’s session.
+2. Verify that the user remains authenticated.
+3. Confirm that previously selected stock subscriptions are restored.
+4. Verify that real-time price updates continue without interruption.
+
+
 
 ## Project Structure
 
